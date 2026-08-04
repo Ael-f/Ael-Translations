@@ -9,10 +9,9 @@
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
   <style>
-    /* Styling Grid Cover Novel */
     .novel-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 20px;
       margin-top: 20px;
     }
@@ -20,32 +19,25 @@
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 10px;
-      overflow: hidden;
+      padding: 16px;
       text-decoration: none;
       color: inherit;
-      transition: transform 0.2s;
+      transition: transform 0.2s, background 0.2s;
       display: flex;
       flex-direction: column;
     }
     .novel-card:hover {
       transform: translateY(-5px);
-    }
-    .novel-cover {
-      width: 100%;
-      height: 250px;
-      object-fit: cover;
-      background: #222;
-    }
-    .novel-info {
-      padding: 12px;
+      background: rgba(255, 255, 255, 0.1);
     }
     .novel-title {
-      font-size: 1rem;
-      margin: 0 0 6px 0;
+      font-size: 1.1rem;
+      margin: 0 0 8px 0;
       font-weight: bold;
+      text-transform: capitalize;
     }
-    .novel-author {
-      font-size: 0.8rem;
+    .novel-status {
+      font-size: 0.85rem;
       opacity: 0.7;
     }
   </style>
@@ -78,7 +70,7 @@
 
       <h2><strong>Daftar Proyek Terjemahan</strong></h2>
 
-      
+      <!-- Tempat novel dari admin akan muncul otomatis -->
       <div id="novel-grid" class="novel-grid">
         <p>Memuat daftar novel...</p>
       </div>
@@ -95,35 +87,47 @@
       document.body.className = themeName;
     }
 
-    
+    // Skrip otomatis untuk menarik data novel dari folder GitHub
     async function loadNovels() {
       const grid = document.getElementById('novel-grid');
-      try {
-        const response = await fetch('https://api.github.com/repos/Ael-f/Ael-Translations/contents/content/novels');
-        if (!response.ok) throw new Error('Belum ada novel.');
-        
-        const files = await response.json();
-        grid.innerHTML = ''; 
+      const username = 'Ael-f';
+      const repo = 'Ael-Translations';
 
-        files.forEach(file => {
-          let cleanTitle = file.name.replace('.md', '').replace(/-/g, ' ');
-          
+      try {
+        // Ambil daftar file dari folder content/novels
+        const response = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/content/novels`);
         
+        if (!response.ok) {
+          throw new Error('Folder novel belum ditemukan.');
+        }
+
+        const files = await response.json();
+        const markdownFiles = files.filter(f => f.name.endsWith('.md'));
+
+        if (markdownFiles.length === 0) {
+          grid.innerHTML = '<p>Belum ada novel yang ditambahkan dari Admin.</p>';
+          return;
+        }
+
+        grid.innerHTML = ''; // Hapus tulisan loading
+
+        markdownFiles.forEach(file => {
+          let cleanTitle = file.name.replace('.md', '').replace(/-/g, ' ');
+
           const card = document.createElement('a');
           card.className = 'novel-card';
-          
-          card.href = `/content/novels/${file.name}`;
-          
+          // Mengarah ke file novel
+          card.href = `/content/novels/${file.name.replace('.md', '')}`;
+
           card.innerHTML = `
-            <div class="novel-info">
-              <h3 class="novel-title" style="text-transform: capitalize;">${cleanTitle}</h3>
-              <span class="novel-author">Klik untuk lihat TOC</span>
-            </div>
+            <h3 class="novel-title">${cleanTitle}</h3>
+            <span class="novel-status">Lihat Daftar Bab &rarr;</span>
           `;
           grid.appendChild(card);
         });
+
       } catch (err) {
-        grid.innerHTML = '<p>Belum ada novel yang ditambahkan.</p>';
+        grid.innerHTML = '<p>Belum ada novel yang dipublikasikan.</p>';
       }
     }
 
