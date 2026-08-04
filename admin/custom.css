@@ -1,0 +1,45 @@
+/* --- GAYA MINIMALIS ALA NOTION / WRITE.AS --- */
+
+/* 1. Lebarkan area kerja admin agar tidak sempit di tengah */
+div[class*="ControlPane"], div[class*="EditWorkflow"] {
+  max-width: 800px !important;
+  margin: 0 auto !important;
+}
+
+/* 2. Ubah latar belakang menjadi bersih dan luas */
+body, [class*="AppHeader"], [class*="CollectionPage"] {
+  background-color: #fafafa !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+/* 3. Sembunyikan garis kotak-kotak form yang kaku */
+input[type="text"], textarea, [class*="ControlPane"] input, [class*="ControlPane"] textarea {
+  border: none !important;
+  border-bottom: 1px solid #eaeaea !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 1.05rem !important;
+  padding: 10px 0 !important;
+}
+
+/* 4. Fokus kotak teks saat diketik (efek lembut ala Notion) */
+input[type="text"]:focus, textarea:focus, [class*="ControlPane"] input:focus {
+  border-bottom: 2px solid #333 !important;
+  outline: none !important;
+}
+
+/* 5. Sembunyikan label/kotak border editor markdown bawaan yang berlebihan */
+[class*="MarkdownControl"] {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* 6. Tombol Publish / Save dibuat lebih elegan dan minimalis */
+button[class*="Button"] {
+  border-radius: 4px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  text-transform: lowercase !important;
+}

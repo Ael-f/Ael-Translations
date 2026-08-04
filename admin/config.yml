@@ -5,8 +5,11 @@ backend:
 media_folder: "images"
 public_folder: "/images"
 
-collections:
+# Memasang CSS kustom agar tampilan admin berubah minimalis ala Notion
+css_files:
+  - "/admin/custom.css"
 
+collections:
   - name: "novel"
     label: "Daftar Novel"
     folder: "content/novel"
@@ -18,13 +21,22 @@ collections:
       - { label: "Penulis Asli", name: "author", widget: "string" }
       - { label: "Sinopsis", name: "synopsis", widget: "text" }
 
-  
   - name: "posts"
     label: "Chapter"
     folder: "post"
     create: true
     slug: "{{slug}}"
     fields:
-      - { label: "Judul Bab (misal: Bab 1 - Awal Cerita)", name: "title", widget: "string" }
-      - { label: "Pilih Novel", name: "novel", widget: "string", hint: "Ketik judul novelnya" }
+      - { label: "Judul Bab", name: "title", widget: "string" }
+      
+      # Pilihan novel otomatis berupa dropdown (tinggal klik)
+      - label: "Pilih Novel"
+        name: "novel"
+        widget: "relation"
+        collection: "novel"
+        search_fields: ["title"]
+        value_field: "title"
+        display_fields: ["title"]
+        hint: "Pilih dari daftar novel yang sudah dibuat"
+
       - { label: "Isi Terjemahan Bab", name: "body", widget: "markdown" }
