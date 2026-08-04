@@ -10,17 +10,25 @@
       line-height: 1.8;
       font-size: 1.05rem;
       margin-top: 20px;
-      white-space: pre-line; /* Ini yang bikin paragraf ceritamu rapi */
+      margin-bottom: 40px; /* Jarak antara cerita dan tombol bawah */
+      white-space: pre-line;
     }
     .back-link {
       display: inline-block;
-      margin-bottom: 20px;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
       text-decoration: none;
       color: inherit;
-      opacity: 0.8;
+      transition: background 0.2s;
     }
     .back-link:hover {
-      text-decoration: underline;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .bottom-nav {
+      margin-top: 30px;
+      text-align: center; /* Membuat tombol berada di tengah */
     }
   </style>
 </head>
@@ -32,9 +40,6 @@
 
   <main>
     <article>
-      <!-- Tombol Kembali -->
-      <a href="javascript:history.back()" class="back-link">&larr; Kembali ke Daftar Bab</a>
-      
       <!-- Judul Bab -->
       <h1 id="chapter-title">Memuat Judul Bab...</h1>
       <hr>
@@ -43,6 +48,14 @@
       <div id="chapter-body" class="chapter-content">
         <p>Memuat isi cerita...</p>
       </div>
+
+      <hr>
+
+      <!-- Tombol Kembali (Pindah ke bawah) -->
+      <div class="bottom-nav">
+        <a href="javascript:history.back()" class="back-link">&larr; Kembali ke Daftar Bab</a>
+      </div>
+      
     </article>
   </main>
 
@@ -50,7 +63,6 @@
     const username = 'Ael-f';
     const repo = 'Ael-Translations';
     
-    // Ambil ID bab dari URL (contoh: post.html?id=bab-1)
     const urlParams = new URLSearchParams(window.location.search);
     const postId = urlParams.get('id');
 
@@ -62,28 +74,22 @@
       }
 
       try {
-        // Tarik file cerita berformat .md dari folder 'post'
         const res = await fetch(`https://raw.githubusercontent.com/${username}/${repo}/main/post/${postId}.md`);
         if (!res.ok) throw new Error();
 
         const rawText = await res.text();
-        
-        // Memisahkan metadata (Frontmatter) dari isi cerita aslinya
         const parts = rawText.split('---');
         let bodyText = rawText;
         let title = postId.replace(/-/g, ' ');
 
         if (parts.length >= 3) {
           const frontmatter = parts[1];
-          // Menggabungkan sisa teks sebagai isi cerita
           bodyText = parts.slice(2).join('---').trim();
 
-          // Mencari judul asli
           const titleMatch = frontmatter.match(/title:\s*["']?(.*?)["']?\n/);
           if (titleMatch) title = titleMatch[1];
         }
 
-        // Tampilkan ke layar
         document.title = `${title} - Ael Translations`;
         document.getElementById('chapter-title').innerText = title;
         document.getElementById('chapter-body').innerText = bodyText;
