@@ -6,8 +6,49 @@
   <title>Ael Translations</title>
   
   <link rel="stylesheet" href="style.css">
-  
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+  <style>
+    /* Styling Grid Cover Novel */
+    .novel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .novel-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+    .novel-card:hover {
+      transform: translateY(-5px);
+    }
+    .novel-cover {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      background: #222;
+    }
+    .novel-info {
+      padding: 12px;
+    }
+    .novel-title {
+      font-size: 1rem;
+      margin: 0 0 6px 0;
+      font-weight: bold;
+    }
+    .novel-author {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+  </style>
 </head>
 <body>
 
@@ -18,7 +59,7 @@
         <button onclick="setTheme('gray')" class="btn-gray" title="Abu-Abu"></button>
         <button onclick="setTheme('dark')" class="btn-dark" title="Dark"></button>
         <button onclick="setTheme('pink')" class="btn-pink" title="Pink"></button>
-      </div>
+    </div>
   </header>
 
   <main>
@@ -37,6 +78,11 @@
 
       <h2><strong>Daftar Proyek Terjemahan</strong></h2>
 
+      
+      <div id="novel-grid" class="novel-grid">
+        <p>Memuat daftar novel...</p>
+      </div>
+
     </article>
   </main>
 
@@ -48,7 +94,41 @@
     function setTheme(themeName) {
       document.body.className = themeName;
     }
+
+    
+    async function loadNovels() {
+      const grid = document.getElementById('novel-grid');
+      try {
+        const response = await fetch('https://api.github.com/repos/Ael-f/Ael-Translations/contents/content/novels');
+        if (!response.ok) throw new Error('Belum ada novel.');
+        
+        const files = await response.json();
+        grid.innerHTML = ''; 
+
+        files.forEach(file => {
+          let cleanTitle = file.name.replace('.md', '').replace(/-/g, ' ');
+          
+        
+          const card = document.createElement('a');
+          card.className = 'novel-card';
+          
+          card.href = `/content/novels/${file.name}`;
+          
+          card.innerHTML = `
+            <div class="novel-info">
+              <h3 class="novel-title" style="text-transform: capitalize;">${cleanTitle}</h3>
+              <span class="novel-author">Klik untuk lihat TOC</span>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (err) {
+        grid.innerHTML = '<p>Belum ada novel yang ditambahkan.</p>';
+      }
+    }
+
+    loadNovels();
   </script>
 
 </body>
-</html>    
+</html>

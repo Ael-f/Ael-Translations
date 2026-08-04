@@ -1,17 +1,30 @@
 backend:
   name: git-gateway
-  branch: main # Atau 'master' tergantung nama branch utama GitHub kamu nanti
+  branch: main
 
-media_folder: "images" # Folder tempat menyimpan gambar jika kamu upload foto
+media_folder: "images"
 public_folder: "/images"
 
 collections:
-  - name: "blog"
-    label: "Tulisan Terbaru"
-    folder: "posts"
+
+  - name: "novel"
+    label: "Daftar Novel"
+    folder: "content/novel"
     create: true
     slug: "{{slug}}"
     fields:
-      - { label: "Judul Proyek / Bab", name: "title", widget: "string" }
-      - { label: "Tanggal Rilis", name: "date", widget: "datetime" }
-      - { label: "Isi Terjemahan / Catatan", name: "body", widget: "markdown" }
+      - { label: "Judul Novel", name: "title", widget: "string" }
+      - { label: "Cover Novel", name: "cover", widget: "image" }
+      - { label: "Penulis Asli", name: "author", widget: "string" }
+      - { label: "Sinopsis", name: "synopsis", widget: "text" }
+
+  
+  - name: "posts"
+    label: "Chapter"
+    folder: "post"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Judul Bab (misal: Bab 1 - Awal Cerita)", name: "title", widget: "string" }
+      - { label: "Pilih Novel", name: "novel", widget: "string", hint: "Ketik judul novelnya" }
+      - { label: "Isi Terjemahan Bab", name: "body", widget: "markdown" }
