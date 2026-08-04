@@ -126,6 +126,7 @@
 
         const files = await res.json();
         const markdownFiles = files.filter(f => f.name.endsWith('.md'));
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
 
         listContainer.innerHTML = '';
 

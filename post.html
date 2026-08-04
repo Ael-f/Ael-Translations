@@ -10,11 +10,18 @@
       line-height: 1.8;
       font-size: 1.05rem;
       margin-top: 20px;
-      margin-bottom: 40px; /* Jarak antara cerita dan tombol bawah */
+      margin-bottom: 40px;
       white-space: pre-line;
     }
-    .back-link {
-      display: inline-block;
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 30px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .nav-btn, .back-link {
       padding: 10px 20px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -23,12 +30,16 @@
       color: inherit;
       transition: background 0.2s;
     }
-    .back-link:hover {
+    .nav-btn:hover, .back-link:hover {
       background: rgba(255, 255, 255, 0.1);
     }
-    .bottom-nav {
-      margin-top: 30px;
-      text-align: center; /* Membuat tombol berada di tengah */
+    .nav-btn.disabled {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+    .center-nav {
+      text-align: center;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -51,22 +62,20 @@
 
       <hr>
 
-      <!-- Tombol Kembali (Pindah ke bawah) -->
-      <div class="bottom-nav">
-        <a href="javascript:history.back()" class="back-link">&larr; Kembali ke Daftar Bab</a>
+      <!-- Navigasi Previous & Next -->
+      <div class="nav-buttons" id="nav-container">
+        <!-- Akan diisi otomatis oleh JavaScript -->
+      </div>
+
+      <!-- Tombol Kembali ke Daftar Bab -->
+      <div class="center-nav">
+        <a href="" id="toc-link" class="back-link">&larr; Kembali ke Daftar Bab</a>
       </div>
       
     </article>
   </main>
 
   <script>
-    
-    const warnaTersimpan = localStorage.getItem('warnaAel');
-    if (warnaTersimpan) {
-      document.body.className = warnaTersimpan;
-    }
-
-    
     const username = 'Ael-f';
     const repo = 'Ael-Translations';
     
@@ -76,18 +85,26 @@
     async function loadChapterContent() {
       if (!postId) {
         document.getElementById('chapter-title').innerText = 'Bab tidak ditemukan';
-        document.getElementById('chapter-body').innerHTML = '';
         return;
       }
 
       try {
-        const res = await fetch(`https://raw.githubusercontent.com/${username}/${repo}/main/post/${postId}.md`);
-        if (!res.ok) throw new Error();
+        // 1. Ambil semua file bab di folder post untuk urutan Prev/Next & Novel terkait
+        const listRes = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/post`);
+        const files = await listRes.json();
+        const markdownFiles = files.filter(f => f.name.endsWith('.md')).sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
 
+        let currentIndex = -1;
+        let fileNames = markdownFiles.map(f => f.name.replace('.md', ''));
+        currentIndex = fileNames.indexOf(postId);
+
+        // 2. Ambil isi bab saat ini
+        const res = await fetch(`https://raw.githubusercontent.com/${username}/${repo}/main/post/${postId}.md`);
         const rawText = await res.text();
         const parts = rawText.split('---');
         let bodyText = rawText;
         let title = postId.replace(/-/g, ' ');
+        let novelName = '';
 
         if (parts.length >= 3) {
           const frontmatter = parts[1];
@@ -95,11 +112,33 @@
 
           const titleMatch = frontmatter.match(/title:\s*["']?(.*?)["']?\n/);
           if (titleMatch) title = titleMatch[1];
+
+          const novelMatch = frontmatter.match(/novel:\s*["']?(.*?)["']?\n/);
+          if (novelMatch) novelName = novelMatch[1];
         }
 
         document.title = `${title} - Ael Translations`;
         document.getElementById('chapter-title').innerText = title;
         document.getElementById('chapter-body').innerText = bodyText;
+
+        // Set tombol kembali ke halaman novel yang sesuai
+        if (novelName) {
+          // Ubah nama novel jadi format slug sederhana untuk URL id novel.html
+          const novelId = novelName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          document.getElementById('toc-link').href = `novel.html?id=${novelId}`;
+        } else {
+          document.getElementById('toc-link').href = '/';
+        }
+
+        // 3. Render Tombol Previous & Next
+        const prevId = currentIndex > 0 ? fileNames[currentIndex - 1] : null;
+        const nextId = currentIndex < fileNames.length - 1 ? fileNames[currentIndex + 1] : null;
+
+        const navContainer = document.getElementById('nav-container');
+        navContainer.innerHTML = `
+          <a href="post.html?id=${prevId}" class="nav-btn ${prevId ? '' : 'disabled'}">&larr; Sebelumnya</a>
+          <a href="post.html?id=${nextId}" class="nav-btn ${nextId ? '' : 'disabled'}">Selanjutnya &rarr;</a>
+        `;
 
       } catch (err) {
         document.getElementById('chapter-title').innerText = 'Gagal memuat bab';
