@@ -1,0 +1,17 @@
+backend:
+  name: git-gateway
+  branch: main # Atau 'master' tergantung nama branch utama GitHub kamu nanti
+
+media_folder: "images" # Folder tempat menyimpan gambar jika kamu upload foto
+public_folder: "/images"
+
+collections:
+  - name: "blog"
+    label: "Tulisan Terbaru"
+    folder: "posts"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Judul Proyek / Bab", name: "title", widget: "string" }
+      - { label: "Tanggal Rilis", name: "date", widget: "datetime" }
+      - { label: "Isi Terjemahan / Catatan", name: "body", widget: "markdown" }
