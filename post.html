@@ -60,6 +60,13 @@
   </main>
 
   <script>
+    
+    const warnaTersimpan = localStorage.getItem('warnaAel');
+    if (warnaTersimpan) {
+      document.body.className = warnaTersimpan;
+    }
+
+    
     const username = 'Ael-f';
     const repo = 'Ael-Translations';
     

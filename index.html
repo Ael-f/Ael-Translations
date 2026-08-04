@@ -93,6 +93,11 @@
   <script>
     function setTheme(themeName) {
       document.body.className = themeName;
+      localStorage.setItem('warnaAel', themeName);
+    }
+    const warnaTersimpan = localStorage.getItem('warnaAel');
+    if (warnaTersimpan) {
+      document.body.className = warnaTersimpan;
     }
 
     async function loadNovels() {
