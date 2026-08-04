@@ -3,21 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Membaca Bab - Ael Translations</title>
+  <title>Detail Novel - Ael Translations</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    .chapter-content {
-      line-height: 1.8;
-      font-size: 1.05rem;
-      margin-top: 20px;
-      white-space: pre-line;
+    .novel-detail {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
     }
-    .back-link {
-      display: inline-block;
-      margin-bottom: 20px;
+    .novel-detail img {
+      width: 180px;
+      height: 260px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .novel-info-detail {
+      flex: 1;
+      min-width: 250px;
+    }
+    .chapter-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+    .chapter-item {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .chapter-item a {
       text-decoration: none;
       color: inherit;
-      opacity: 0.8;
+      font-weight: bold;
+    }
+    .chapter-item a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -29,58 +49,112 @@
 
   <main>
     <article>
-      <a href="javascript:history.back()" class="back-link">&larr; Kembali ke Daftar Bab</a>
-      
-      <h1 id="chapter-title">Memuat Judul Bab...</h1>
+      <div id="novel-header" class="novel-detail">
+        <p>Memuat detail novel...</p>
+      </div>
+
       <hr>
 
-      <div id="chapter-body" class="chapter-content">
-        <p>Memuat isi cerita...</p>
-      </div>
+      <h2><strong>Table of Contents (Daftar Bab)</strong></h2>
+      <ul id="chapter-list" class="chapter-list">
+        <li>Memuat daftar bab...</li>
+      </ul>
     </article>
   </main>
 
   <script>
     const username = 'Ael-f';
     const repo = 'Ael-Translations';
-    const urlParams = new URLSearchParams(window.location.search);
-    const postId = urlParams.get('id');
 
-    async function loadChapterContent() {
-      if (!postId) {
-        document.getElementById('chapter-title').innerText = 'Bab tidak ditemukan';
-        document.getElementById('chapter-body').innerHTML = '';
+    // Ambil ID Novel dari URL (misal: novel.html?id=judul-novel)
+    const urlParams = new URLSearchParams(window.location.search);
+    const novelId = urlParams.get('id');
+
+    async function loadNovelDetailAndChapters() {
+      if (!novelId) {
+        document.getElementById('novel-header').innerHTML = '<p>Novel tidak ditemukan.</p>';
         return;
       }
 
+      // 1. Ambil Data Detail Novel
       try {
-        const res = await fetch(`https://raw.githubusercontent.com/${username}/${repo}/main/post/${postId}.md`);
-        if (!res.ok) throw new Error();
-
+        const res = await fetch(`https://raw.githubusercontent.com/${username}/${repo}/main/content/novel/${novelId}.md`);
         const rawText = await res.text();
-        const parts = rawText.split('---');
-        let bodyText = rawText;
-        let title = postId.replace(/-/g, ' ');
 
-        if (parts.length >= 3) {
-          const frontmatter = parts[1];
-          bodyText = parts.slice(2).join('---').trim();
+        const titleMatch = rawText.match(/title:\s*["']?(.*?)["']?\n/);
+        const coverMatch = rawText.match(/cover:\s*["']?(.*?)["']?\n/);
+        const authorMatch = rawText.match(/author:\s*["']?(.*?)["']?\n/);
+        const synopsisMatch = rawText.match(/synopsis:\s*["']?(.*?)["']?\n/);
 
-          const titleMatch = frontmatter.match(/title:\s*["']?(.*?)["']?\n/);
-          if (titleMatch) title = titleMatch[1];
-        }
+        const title = titleMatch ? titleMatch[1] : novelId;
+        const cover = coverMatch ? coverMatch[1] : '';
+        const author = authorMatch ? authorMatch[1] : 'Tidak diketahui';
+        const synopsis = synopsisMatch ? synopsisMatch[1] : '';
 
         document.title = `${title} - Ael Translations`;
-        document.getElementById('chapter-title').innerText = title;
-        document.getElementById('chapter-body').innerText = bodyText;
+
+        document.getElementById('novel-header').innerHTML = `
+          ${cover ? `<img src="${cover}" alt="${title}">` : ''}
+          <div class="novel-info-detail">
+            <h1>${title}</h1>
+            <p><strong>Penulis:</strong> ${author}</p>
+            <p><strong>Sinopsis:</strong> ${synopsis || 'Belum ada sinopsis.'}</p>
+          </div>
+        `;
+
+        // 2. Ambil Daftar Bab dari Folder 'post' yang Cocok dengan Novel Ini
+        loadChapters(title);
 
       } catch (err) {
-        document.getElementById('chapter-title').innerText = 'Gagal memuat bab';
-        document.getElementById('chapter-body').innerHTML = '<p>Bab ini belum ada atau terjadi kesalahan link.</p>';
+        document.getElementById('novel-header').innerHTML = '<p>Gagal memuat detail novel.</p>';
       }
     }
 
-    loadChapterContent();
+    async function loadChapters(novelTitle) {
+      const listContainer = document.getElementById('chapter-list');
+      try {
+        const res = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/post`);
+        if (!res.ok) throw new Error();
+
+        const files = await res.json();
+        const markdownFiles = files.filter(f => f.name.endsWith('.md'));
+
+        listContainer.innerHTML = '';
+
+        let count = 0;
+        for (const file of markdownFiles) {
+          const fileRes = await fetch(file.download_url);
+          const rawText = await fileRes.text();
+
+          const chapterTitleMatch = rawText.match(/title:\s*["']?(.*?)["']?\n/);
+          const novelMatch = rawText.match(/novel:\s*["']?(.*?)["']?\n/);
+
+          const chapterTitle = chapterTitleMatch ? chapterTitleMatch[1] : file.name.replace('.md', '');
+          const belongsToNovel = novelMatch ? novelMatch[1] : '';
+
+          // Cek apakah bab ini milik novel ini
+          if (!belongsToNovel || belongsToNovel.toLowerCase().trim() === novelTitle.toLowerCase().trim()) {
+            count++;
+            const li = document.createElement('li');
+            li.className = 'chapter-item';
+            
+            // PERBAIKAN LINK ADA DI SINI (menggunakan post.html?id=...)
+            li.innerHTML = `<a href="/post.html?id=${file.name.replace('.md', '')}">${chapterTitle}</a>`;
+            
+            listContainer.appendChild(li);
+          }
+        }
+
+        if (count === 0) {
+          listContainer.innerHTML = '<li>Belum ada bab yang dipublikasikan untuk novel ini.</li>';
+        }
+
+      } catch (err) {
+        listContainer.innerHTML = '<li>Belum ada bab untuk novel ini.</li>';
+      }
+    }
+
+    loadNovelDetailAndChapters();
   </script>
 </body>
 </html>
