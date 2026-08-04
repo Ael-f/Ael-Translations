@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Membaca Bab - Ael Translations</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .chapter-content {
+      line-height: 1.8;
+      font-size: 1.05rem;
+      margin-top: 20px;
+      white-space: pre-line;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      text-decoration: none;
+      color: inherit;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="logo">Ael Translations</a>
+  </header>
+
+  <main>
+    <article>
+      <a href="javascript:history.back()" class="back-link">&larr; Kembali ke Daftar Bab</a>
+      
+      <h1 id="chapter-title">Memuat Judul Bab...</h1>
+      <hr>
+
+      <div id="chapter-body" class="chapter-content">
+        <p>Memuat isi cerita...</p>
+      </div>
+    </article>
+  </main>
+
+  <script>
+    const username = 'Ael-f';
+    const repo = 'Ael-Translations';
+    const urlParams = new URLSearchParams(window.location.search);
+    const postId = urlParams.get('id');
+
+    async function loadChapterContent() {
+      if (!postId) {
+        document.getElementById('chapter-title').innerText = 'Bab tidak ditemukan';
+        document.getElementById('chapter-body').innerHTML = '';
+        return;
+      }
+
+      try {
+        const res = await fetch(`https://raw.githubusercontent.com/${username}/${repo}/main/post/${postId}.md`);
+        if (!res.ok) throw new Error();
+
+        const rawText = await res.text();
+        const parts = rawText.split('---');
+        let bodyText = rawText;
+        let title = postId.replace(/-/g, ' ');
+
+        if (parts.length >= 3) {
+          const frontmatter = parts[1];
+          bodyText = parts.slice(2).join('---').trim();
+
+          const titleMatch = frontmatter.match(/title:\s*["']?(.*?)["']?\n/);
+          if (titleMatch) title = titleMatch[1];
+        }
+
+        document.title = `${title} - Ael Translations`;
+        document.getElementById('chapter-title').innerText = title;
+        document.getElementById('chapter-body').innerText = bodyText;
+
+      } catch (err) {
+        document.getElementById('chapter-title').innerText = 'Gagal memuat bab';
+        document.getElementById('chapter-body').innerHTML = '<p>Bab ini belum ada atau terjadi kesalahan link.</p>';
+      }
+    }
+
+    loadChapterContent();
+  </script>
+</body>
+</html>

@@ -137,8 +137,10 @@
             count++;
             const li = document.createElement('li');
             li.className = 'chapter-item';
-            // Link langsung menuju file bab / post
-            li.innerHTML = `<a href="/post/${file.name.replace('.md', '')}">${chapterTitle}</a>`;
+            
+            // PERBAIKAN LINK ADA DI SINI (menggunakan post.html?id=...)
+            li.innerHTML = `<a href="/post.html?id=${file.name.replace('.md', '')}">${chapterTitle}</a>`;
+            
             listContainer.appendChild(li);
           }
         }
