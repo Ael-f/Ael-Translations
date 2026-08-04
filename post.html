@@ -76,6 +76,12 @@
   </main>
 
   <script>
+    // Cek warna dari memori dan pasang otomatis supaya sama dengan beranda
+    const warnaTersimpan = localStorage.getItem('warnaAel');
+    if (warnaTersimpan) {
+      document.body.className = warnaTersimpan;
+    }
+
     const username = 'Ael-f';
     const repo = 'Ael-Translations';
     
@@ -121,10 +127,15 @@
         document.getElementById('chapter-title').innerText = title;
         document.getElementById('chapter-body').innerText = bodyText;
 
-        // Set tombol kembali ke halaman novel yang sesuai
+        // Set tombol kembali ke halaman novel yang sesuai dengan slug yang akurat
         if (novelName) {
-          // Ubah nama novel jadi format slug sederhana untuk URL id novel.html
-          const novelId = novelName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          const novelId = novelName
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/[\s_-]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+            
           document.getElementById('toc-link').href = `novel.html?id=${novelId}`;
         } else {
           document.getElementById('toc-link').href = '/';
